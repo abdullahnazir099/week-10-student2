@@ -23,7 +23,7 @@ exports.handler = async (event, context) => {
     });
 
    
-    const query = 'INSERT INTO notes (contact_id, note, created_at, updated_at) VALUES (?, ?, NOW(), NOW())';
+    const query = 'INSERT INTO notes (contact_id, note) VALUES (?, ?)';
 
 
     const [result] = await connection.execute(query, [contact_id, note]);
