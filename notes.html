@@ -148,13 +148,9 @@
             const noteContent = document.getElementById('noteContent').value;
             const contactId = document.getElementById('contactId').value; 
 
-            const user = netlifyIdentity.currentUser();
-            if (!user) {
-                console.log('User not logged in');
-                return;
-            }
+          
 
-            user.jwt().then((token) => {
+           
                 fetch('/.netlify/functions/note_create', {
                     method: 'POST',
                     headers: {
@@ -181,7 +177,7 @@
                     console.error('Error creating note:', error);
                     alert('Failed to create note. Please try again.');
                 });
-            });
+           
         }
     </script>
 </body>
