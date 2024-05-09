@@ -128,7 +128,7 @@
             user.jwt().then((token) => {
                 fetch('/.netlify/functions/note_read', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                      
                     }
                 })
                 .then(response => response.json())
@@ -159,7 +159,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                       
                     },
                     body: JSON.stringify({
                         contact_id: contactId,
