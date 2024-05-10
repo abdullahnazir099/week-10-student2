@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,11 +9,13 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="#">LOGO</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -20,7 +23,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="index.html">Home</a>
                     </li>
-                 
+
                     <li class="nav-item">
                         <a class="nav-link" href="contact.html">Contacts</a>
                     </li>
@@ -28,7 +31,7 @@
                         <a class="nav-link" href="notes.html">Notes</a>
                     </li>
                     <li class="nav-item">
-                       
+
                     </li>
                     <li class="nav-item">
                         <button onclick="window.netlifyIdentity && window.netlifyIdentity.open('login')">Log In</button>
@@ -55,12 +58,13 @@
                     <th scope="col">Actions</th>
                 </tr>
             </thead>
-            <tbody id="contactsTableBody"></tbody> 
+            <tbody id="contactsTableBody"></tbody>
         </table>
     </div>
 
     <!-- Add Contact Modal -->
-    <div class="modal fade" id="addContactModal" tabindex="-1" role="dialog" aria-labelledby="addContactModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addContactModal" tabindex="-1" role="dialog" aria-labelledby="addContactModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -105,25 +109,25 @@
             window.netlifyIdentity.on("init", () => {
                 const user = netlifyIdentity.currentUser();
                 console.log('Netlify Identity initial user state:', user);
-      
+
                 if (!user) {
                     console.log('No user found, opening login modal');
-                    netlifyIdentity.open("login"); 
+                    netlifyIdentity.open("login");
                 } else {
-                
+
                     console.log('User found:', user);
                     fetchContacts()
                 }
                 netlifyIdentity.on("login", (user) => {
                     console.log('User logged in', user);
-                   
+
                     netlifyIdentity.close();
                     fetchContacts()
-                    
+
                 });
                 netlifyIdentity.on("logout", () => {
                     console.log('User logged out');
-             
+
                     document.location.href = "/contact.html";
                 });
             });
@@ -131,24 +135,31 @@
             console.error('Netlify Identity script not found. Ensure it is loaded before this script.');
         }
 
-      
+
         function login() {
-            netlifyIdentity.open("login"); 
+            netlifyIdentity.open("login");
         }
 
         function logout() {
-            netlifyIdentity.logout(); 
+            netlifyIdentity.logout();
         }
 
 
         function fetchContacts() {
-            fetch('/.netlify/functions/contact_read')
-                .then(response => response.json())
-                .then(contacts => {
-                    const contactsTableBody = document.getElementById('contactsTableBody');
-                    contactsTableBody.innerHTML = ''; 
-                    contacts.forEach((contact, index) => {
-                        const row = `
+
+            const user = netlifyIdentity.currentUser();
+            user.jwt().then((token) => {
+                fetch('/.netlify/functions/contact_read', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                    .then(response => response.json())
+                    .then(contacts => {
+                        const contactsTableBody = document.getElementById('contactsTableBody');
+                        contactsTableBody.innerHTML = '';
+                        contacts.forEach((contact, index) => {
+                            const row = `
                             <tr>
                                 <th scope="row">${index + 1}</th>
                                 <td>${contact.first_name} ${contact.last_name}</td>
@@ -161,10 +172,11 @@
                                 </td>
                             </tr>
                         `;
-                        contactsTableBody.innerHTML += row;
-                    });
-                })
-                .catch(error => console.error('Error fetching contacts:', error));
+                            contactsTableBody.innerHTML += row;
+                        });
+                    })
+                    .catch(error => console.error('Error fetching contacts:', error));
+            });
         }
 
 
@@ -174,37 +186,45 @@
             const contactPhone = document.getElementById('contactPhone').value.trim();
             const contactCategory = document.getElementById('contactCategory').value.trim();
 
-            fetch('/.netlify/functions/contact_create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                   
-                },
-                body: JSON.stringify({
-                    first_name: contactName.split(' ')[0], 
-                    last_name: contactName.split(' ')[1] || '',
-                    email: contactEmail,
-                    phone: contactPhone,
-                    category_id: contactCategory,
-                }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Success:', data);
 
-                fetchContacts();
+            const user = netlifyIdentity.currentUser();
 
-                $('#addContactModal').modal('hide');
-            })
-            .catch(error => {
-                console.error('Error:', error.message);
+            user.jwt().then((token) => {
 
-                alert('Failed to add contact. Please try again.');
+
+                fetch('/.netlify/functions/contact_create', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+
+                    },
+                    body: JSON.stringify({
+                        first_name: contactName.split(' ')[0],
+                        last_name: contactName.split(' ')[1] || '',
+                        email: contactEmail,
+                        phone: contactPhone,
+                        category_id: contactCategory,
+                    }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Success:', data);
+
+                        fetchContacts();
+
+                        $('#addContactModal').modal('hide');
+                    })
+                    .catch(error => {
+                        console.error('Error:', error.message);
+
+                        alert('Failed to add contact. Please try again.');
+                    });
             });
         }
 
@@ -213,19 +233,27 @@
 
             console.log('Deleting contact with ID:', contactId);
             if (confirm('Are you sure you want to delete this contact?')) {
-                fetch(`/.netlify/functions/contact_delete?id=${contactId}`, {
-                  method: 'DELETE',
-                })
-                .then(response => {
-                  if (response.ok) {
-                    fetchContacts();
-                  }
-                })
-                .catch(error => console.error('Error:', error));
-              }
+
+                const user = netlifyIdentity.currentUser();
+                user.jwt().then((token) => {
+                    fetch(`/.netlify/functions/contact_delete?id=${contactId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                        },
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                fetchContacts();
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                });
+            }
         }
 
         fetchContacts();
     </script>
 </body>
+
 </html>

@@ -58,7 +58,14 @@
         });
 
         function fetchContact(contactId) {
-            fetch(`/.netlify/functions/single_contact_read?id=${contactId}`)
+            const user = netlifyIdentity.currentUser();
+            user.jwt().then((token) => {
+
+            fetch(`/.netlify/functions/single_contact_read?id=${contactId}`,{
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
                 .then(response => response.json())
                 .then(contact => {
                     const contactDetails = document.getElementById('contactDetails');
@@ -70,6 +77,7 @@
                     `;
                 })
                 .catch(error => console.error('Error fetching contact:', error));
+            });
         }
 
 

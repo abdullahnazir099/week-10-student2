@@ -3,7 +3,13 @@ const mysql = require('mysql2/promise');
 exports.handler = async (event, context) => {
   try {
 
-  
+    if (!context.clientContext || !context.clientContext.user) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ error: 'You must be logged in to create a contact.' }),
+      };
+    }
+
 
     const { id } = event.queryStringParameters;
 
